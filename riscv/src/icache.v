@@ -14,7 +14,8 @@ module Icache (
     // Memctrl
     input  wire inst_rdy, 
     input  wire [31:0] inst_in, // from memctrl to icache
-    output reg  mem_rdy // from icache to memctrl
+    output reg  mem_rdy, // from icache to memctrl
+    output reg  [31:0] pc_out
 );
 
     localparam `CACHE_SIZE = 256;
@@ -51,6 +52,7 @@ module Icache (
                     if (!hit) begin
                         statu <= `MEM;
                         mem_rdy <= 1;
+                        pc_out <= pc;
                     end
                 end
                 `MEM : begin

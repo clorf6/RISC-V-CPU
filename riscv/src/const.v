@@ -7,3 +7,9 @@
 `define JALR  6'd6
 `define LUI   6'd7
 `define AUIPC 6'd8
+
+
+`define DONE  2'b00
+`define REG   2'b01
+`define MEM   2'b10
+`define BR    2'b11

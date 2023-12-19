@@ -16,22 +16,32 @@ module IQueue (
     // Reg
     input  wire op1_rdy,
     input  wire op2_rdy,
-    output wire ind1, 
-    output wire ind2,
+    output wire [4:0] rd_ind,  // set rd's dependency
+    output wire [4:0] rs1_ind, // judge whether rs have dependency
+    output wire [4:0] rs2_ind,
 
-    // MUX
-    input wire issue_rdy,
-    output reg ins_rdy,
+    // Reg and Forward, ALU
+    output reg issue_rdy,
+
+    // Reg and Forward
+    output reg [1:0] type, // Only type is REG need to write rd
+    
+    // Forward
+    input wire ins_rdy,
+    input wire bubble,
+    output reg [4:0] rd,
+
+    // Forward and ALU
     output reg is_vec,
+    output reg [31:0] pc_out,
+    output reg [31:0] imm,
+
+    // ALU
     output reg is_imm, // use imm as operand (not rs2)
     output reg is_pc, // use pc as operand (not rs1)
-    output reg [2:0]  type,
-    output reg [5:0]  name,
-    output reg [4:0]  rd,
-    output reg [4:0]  rs1, 
-    output reg [4:0]  rs2,
-    output reg [31:0] imm,
-    output reg [31:0] pc_out
+    output reg [5:0] name,
+    output reg [4:0] rs1, 
+    output reg [4:0] rs2
 );
 
     localparam `QUE_SIZE = 16;
@@ -54,14 +64,15 @@ module IQueue (
         .imm (imm)
     );
 
-    assign ind1 = rs1;
-    assign ind2 = rs2;
+    assign rd_ind = rd;
+    assign rs1_ind = rs1;
+    assign rs2_ind = rs2;
 
     always @(posedge clk) begin
         if (rst) begin
             head <= 0;
             tail <= 0;
-            ins_rdy <= 0;
+            issue_rdy <= 0;
         end else if (!rdy) begin 
 
         end else begin
@@ -70,12 +81,14 @@ module IQueue (
                 pc_que[tail] <= pc_in;
                 ins_que[tail] <= inst; 
             end
-            if (issue_rdy && !empty && op1_rdy && op2_rdy) begin
-                pc_out <= pc_que[head];
-                head <= head + 1;
-                ins_rdy <= 1;
+            if (ins_rdy && !empty && !bubble) begin
+                if ((is_pc || op1_rdy) && (is_imm || op2_rdy)) begin
+                    pc_out <= pc_que[head];
+                    head <= head + 1;
+                    issue_rdy <= 1;
+                end
             end else begin
-                ins_rdy <= 0;
+                issue_rdy <= 0;
             end
         end
     end

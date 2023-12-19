@@ -5,25 +5,27 @@
 
 module Decode (
     input wire [31:0] inst,
-    output reg  is_vec,
-    output reg  is_imm,
-    output reg  is_pc,
-    output reg  [2:0]  type,
-    output reg  [5:0]  name,
-    output wire [4:0]  rd,
-    output wire [4:0]  rs1,
-    output wire [4:0]  rs2,
-    output reg  [31:0] imm
+    output reg is_vec,
+    output reg is_imm,
+    output reg is_pc,
+    output reg [2:0]  type,
+    output reg [5:0]  name,
+    output reg [4:0]  rd,
+    output reg [4:0]  rs1,
+    output reg [4:0]  rs2,
+    output reg [31:0] imm
 );
     wire [6:0]   opcode = inst[6:0];
     wire [3:0]   funct3 = inst[14:12];
     wire [31:25] funct7 = inst[31:25];
-
-    assign rd  = inst[11:7];
-    assign rs1 = inst[19:15];
-    assign rs2 = inst[24:20];
     
     always @(*) begin
+        is_imm = 0;
+        is_pc = 0;
+        is_vec = 0;
+        rd  = inst[11:7];
+        rs1 = inst[19:15];
+        rs2 = inst[24:20];
         case (opcode)
             7'b0110011: begin
                 name = funct7 == 7'b0000000 ? `ADD : `SUB;

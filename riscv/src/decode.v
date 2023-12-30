@@ -8,7 +8,7 @@ module Decode (
     output reg is_vec,
     output reg is_imm,
     output reg is_pc,
-    output reg [2:0]  type,
+    output reg [1:0]  type,
     output reg [5:0]  name,
     output reg [4:0]  rd,
     output reg [4:0]  rs1,
@@ -20,6 +20,9 @@ module Decode (
     wire [31:25] funct7 = inst[31:25];
     
     always @(*) begin
+        if (inst == 32'h0ff00513) begin
+            type = `DONE;
+        end
         is_imm = 0;
         is_pc = 0;
         is_vec = 0;
@@ -47,7 +50,6 @@ module Decode (
                 name = `BEQ;
                 type = `BR;
                 imm  = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0}; 
-                is_imm = 1;
             end
             7'b0110111: begin
                 name = `LUI;

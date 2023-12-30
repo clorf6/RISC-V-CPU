@@ -21,7 +21,7 @@ module SRegfile (
     output wire [31:0] op1,
     output wire [31:0] op2,
 
-    // CU
+    // WB
     input wire commit_rd;
     input wire [31:0] commit_data;
 );

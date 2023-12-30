@@ -33,13 +33,13 @@ module IQueue (
 
     // Forward and ALU
     output reg is_vec,
+    output reg [5:0] name,
     output reg [31:0] pc_out,
     output reg [31:0] imm,
 
     // ALU
     output reg is_imm, // use imm as operand (not rs2)
     output reg is_pc, // use pc as operand (not rs1)
-    output reg [5:0] name,
     output reg [4:0] rs1, 
     output reg [4:0] rs2
 );

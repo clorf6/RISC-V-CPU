@@ -9,9 +9,10 @@ module Forward (
     input wire rdy,
 
     // IQueue
-    input wire ins_rdy,
+    input wire issue_rdy,
     input wire is_vec,
-    input wire [2:0]  type,
+    input wire [1:0]  type,
+    input wire [5:0]  name,
     input wire [4:0]  rd,
     input wire [31:0] pc,
     input wire [31:0] imm,
@@ -22,23 +23,25 @@ module Forward (
     input wire wb_rdy,
     output reg rd_rdy,
     output reg is_vec_out,
-    output reg [2:0]  type_out,
+    output reg [1:0]  type_out,
+    output reg [5:0]  name_out,
     output reg [4:0]  rd_out,
     output reg [31:0] pc_out,
     output reg [31:0] imm_out
 
 );
 
-    assign bubble = (ins_rdy && type == `MEM);
+    assign bubble = (issue_rdy && type == `MEM);
 
     always @(posedge clk) begin
         if (rst) begin
-            ins_rdy <= 0;
+            issue_rdy <= 0;
         end else if (!rdy) begin
         end else begin
-            rd_rdy <= ins_rdy;
+            rd_rdy <= issue_rdy;
             is_vec_out <= is_vec; 
             type_out <= type;
+            name_out <= name;
             rd_out <= rd;
             pc_out <= pc;
             imm_out <= imm;

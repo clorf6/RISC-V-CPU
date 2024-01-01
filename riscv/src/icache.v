@@ -14,7 +14,7 @@ module Icache (
     // Memctrl
     input  wire inst_rdy, 
     input  wire [31:0] inst_in, // from memctrl to icache
-    output reg  mem_rdy, // from icache to memctrl
+    output reg  inst_miss, // from icache to memctrl
     output reg  [31:0] pc_out
 );
 
@@ -51,14 +51,14 @@ module Icache (
                 `IDLE : begin
                     if (!hit) begin
                         statu <= `MEM;
-                        mem_rdy <= 1;
+                        inst_miss <= 1;
                         pc_out <= pc;
                     end
                 end
                 `MEM : begin
                     if (inst_rdy) begin
                         statu <= `IDLE;
-                        mem_rdy <= 0;
+                        inst_miss <= 0;
                         valid[index] <= 1;
                         tag[index] <= tag_in;
                         data[index] <= inst_in;

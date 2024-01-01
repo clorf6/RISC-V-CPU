@@ -16,21 +16,20 @@ module IQueue (
     // Reg
     input  wire op1_rdy,
     input  wire op2_rdy,
-    output wire [4:0] rd_ind,  // set rd's dependency
-    output wire [4:0] rs1_ind, // judge whether rs have dependency
-    output wire [4:0] rs2_ind,
+    output reg [4:0] rs1, 
+    output reg [4:0] rs2
 
     // Reg and Forward, ALU
     output reg issue_rdy,
 
     // Reg and Forward
     output reg [1:0] type, // Only type is REG need to write rd
+    output reg [4:0] rd,
     
     // Forward
     input wire ins_rdy,
     input wire bubble,
-    output reg [4:0] rd,
-
+    
     // Forward and ALU
     output reg is_vec,
     output reg [5:0] name,
@@ -40,8 +39,6 @@ module IQueue (
     // ALU
     output reg is_imm, // use imm as operand (not rs2)
     output reg is_pc, // use pc as operand (not rs1)
-    output reg [4:0] rs1, 
-    output reg [4:0] rs2
 );
 
     localparam `QUE_SIZE = 16;
@@ -63,10 +60,6 @@ module IQueue (
         .rs2 (rs2),
         .imm (imm)
     );
-
-    assign rd_ind = rd;
-    assign rs1_ind = rs1;
-    assign rs2_ind = rs2;
 
     always @(posedge clk) begin
         if (rst) begin

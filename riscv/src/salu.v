@@ -17,7 +17,9 @@ module SALU (
 
     // Reg
     input wire [31:0] op1, 
-    input wire [31:0] op2,
+
+    // Reg and WB
+    input wire [31:0] op2, // WB need op2 when sw
 
     // WB
     output reg [31:0] val

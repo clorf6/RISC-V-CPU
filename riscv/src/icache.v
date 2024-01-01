@@ -1,7 +1,9 @@
+`include "const.v"
+
 `ifndef ICACHE_V
 `define ICACHE_V
 
-module Icache (
+module ICache (
     input wire clk,
     input wire rst,
     input wire rdy,
@@ -17,13 +19,6 @@ module Icache (
     output reg  inst_miss, // from icache to memctrl
     output reg  [31:0] pc_out
 );
-
-    localparam `CACHE_SIZE = 256;
-    localparam `INDEX_SIZE = 8;
-    localparam `TAG_SIZE = 30 - `INDEX_SIZE;
-
-    localparam `IDLE = 1'b0;
-    localparam `MEM = 1'b1;
 
     reg                   statu;
     reg                   valid [`CACHE_SIZE - 1:0];

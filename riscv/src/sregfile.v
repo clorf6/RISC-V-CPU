@@ -9,8 +9,8 @@ module SRegfile (
     input wire rdy,
 
     // IQueue
-    input wire issue_rdy;
-    input wire [1:0] type;
+    input wire issue_rdy,
+    input wire [1:0] type,
     input wire [4:0] rd,
     input wire [4:0] rs1,
     input wire [4:0] rs2,
@@ -22,8 +22,8 @@ module SRegfile (
     output wire [31:0] op2,
 
     // WB
-    input wire commit_rd;
-    input wire [31:0] commit_data;
+    input wire commit_rd,
+    input wire [31:0] commit_data
 );
 
     reg        busy [31:0];

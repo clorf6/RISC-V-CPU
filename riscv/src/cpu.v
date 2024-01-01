@@ -1,4 +1,12 @@
 `include "./iqueue.v"
+`include "./forward.v"
+`include "./salu.v"
+`include "./sregfile.v"
+`include "./writeback.v"
+`include "./memctrl.v"
+`include "./icache.v"
+`include "./ifetch.v"
+
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
 
@@ -32,7 +40,8 @@ module cpu(
 // Memctrl input
   wire ic_to_mem_inst_miss;
   wire [31:0] ic_to_mem_pc;
-  wire wb_to_mem_wr;
+  wire [2:0] wb_to_mem_len;
+  wire [1:0] wb_to_mem_wr;
   wire [31:0] wb_to_mem_addr;
   wire [31:0] wb_to_mem_data;
 
@@ -104,6 +113,7 @@ module cpu(
     .pc(ic_to_mem_pc),
     .inst_rdy(mem_to_ic_inst_rdy),
     .inst_out(mem_to_ic_inst),
+    .mem_len(wb_to_mem_len),
     .mem_wr(wb_to_mem_wr),
     .mem_addr(wb_to_mem_addr),
     .mem_data(wb_to_mem_data),
@@ -146,8 +156,11 @@ module cpu(
     .inst_rdy(if_to_iq_inst_rdy),
     .inst(if_to_iq_inst),
     .pc_in(if_to_iq_pc),
+    .iqueue_full(iq_to_if_iq_full),
     .op1_rdy(reg_to_iq_op1_rdy),
     .op2_rdy(reg_to_iq_op2_rdy),
+    .rs1(iq_rs1),
+    .rs2(iq_rs2),
     .issue_rdy(iq_issue_rdy),
     .type(iq_type),
     .rd(iq_rd),
@@ -158,9 +171,7 @@ module cpu(
     .pc_out(iq_pc),
     .imm(iq_imm),
     .is_imm(iq_is_imm),
-    .is_pc(iq_is_pc),
-    .rs1(iq_rs1),
-    .rs2(iq_rs2)
+    .is_pc(iq_is_pc)
   );
 
   Forward forward(
@@ -238,7 +249,8 @@ module cpu(
     .reg_rd(wb_to_reg_commit_rd),
     .reg_out(wb_to_reg_commit_data),
     .mem_rdy(mem_to_wb_mem_rdy),
-    .mem_out(mem_to_wb_mem_out),
+    .ld_data(mem_to_wb_mem_out),
+    .mem_len(wb_to_mem_len),
     .mem_wr(wb_to_mem_wr),
     .mem_addr(wb_to_mem_addr),
     .mem_data(wb_to_mem_data)

@@ -31,11 +31,11 @@ module Forward (
 
 );
 
-    assign bubble = (issue_rdy && type == `MEM);
+    assign bubble = (issue_rdy && (type == `MEM));
 
     always @(posedge clk) begin
         if (rst) begin
-            issue_rdy <= 0;
+            ins_rdy <= 0;
         end else if (!rdy) begin
         end else begin
             rd_rdy <= issue_rdy;

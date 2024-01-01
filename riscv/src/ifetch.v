@@ -39,7 +39,7 @@ module IFetch (
                     inst_out <= inst_in;
                     if (inst_in == 32'h0ff00513) begin // DONE
                         pc <= 0;
-                        ins_rdy <= 0;
+                        inst_rdy <= 0;
                         stall <= 1;
                     end else if (inst_in[6:0] == 7'b1101111) begin // JAL
                         pc <= pc + {{12{inst_in[31]}}, inst_in[19:12], inst_in[20], inst_in[30:21], 1'b0};

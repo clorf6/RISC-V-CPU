@@ -33,77 +33,100 @@ module WriteBack (
     // Memctrl
     input wire mem_rdy,
     input wire [31:0] ld_data,
+    output reg [2:0]  mem_len,
     output reg [1:0]  mem_wr,
     output reg [31:0] mem_addr,
     output reg [31:0] mem_data
 );
 
-    localparam `IDLE = 2'b00;
-    localparam `LD   = 2'b10;
-    localparam `ST   = 2'b11;
-
     reg [1:0] statu;
+    reg [5:0] now_name;
 
     always @(posedge clk) begin
         if (rst) begin
             br_rdy <= 0;
-            reg_rdy <= 0;
+            reg_rd <= 0;
             wb_rdy <= 0;
         end else if (!rdy) begin
 
         end else begin
             mem_wr <= statu;
-            case (statu) :
+            case (statu)
                 `IDLE: begin
                     if (rd_rdy) begin
-                        case (type) :
+                        case (type)
                             `DONE: begin
                                 $finish;
                             end
                             `REG: begin
-                                reg_rd <= rd;
-                                if (name == `JALR) begin
-                                    br_rdy <= 1;
-                                    pc_out <= val;
-                                    reg_out <= pc + 4;
-                                end else begin
+                                if (name >= `LB && name <= `LHU) begin
                                     br_rdy <= 0;
-                                    reg_out <= val;
-                                end
+                                    reg_rd <= 0;
+                                    wb_rdy <= 0;
+                                    statu <= `LD;
+                                    now_name <= name;
+                                    mem_addr <= val;
+                                    if (name == `LB || name == `LBU) mem_len <= 1;
+                                    else if (name == `LH || name == `LHU) mem_len <= 2;
+                                    else mem_len <= 4;
+                                end else begin
+                                    reg_rd <= rd;
+                                    wb_rdy <= 1;
+                                    if (name == `JALR) begin
+                                        br_rdy <= 1;
+                                        pc_out <= val;
+                                        reg_out <= pc + 4;
+                                    end else begin
+                                        br_rdy <= 0;
+                                        reg_out <= val;
+                                    end
+                                end                                
                             end
                             `MEM: begin
                                 br_rdy <= 0;
                                 reg_rd <= 0;
-                                if (name == `LW) begin
-                                    statu <= `LD;
-                                    mem_addr <= val;
-                                end else begin
+                                if (name <= `SW && name >= `SB) begin
                                     statu <= `ST;
+                                    wb_rdy <= 0;
                                     mem_addr <= val;
+                                    now_name <= name;
                                     mem_data <= st_data;
+                                    if (name == `SB) mem_len <= 1;
+                                    else if (name == `SH) mem_len <= 2;
+                                    else mem_len <= 4;
                                 end
                             end
                             `BR: begin
                                 br_rdy <= 1;
                                 pc_out <= (val ? pc + imm : pc + 4);
                                 reg_rd <= 0;
+                                wb_rdy <= 1;
                             end
                         endcase
                     end else begin
                         br_rdy <= 0;
-                        reg_rdy <= 0;
+                        reg_rd <= 0;
+                        wb_rdy <= 1;
                     end
                 end
                 `LD: begin
                     if (mem_rdy) begin
                         reg_rd <= rd;
-                        reg_out <= ld_data;
+                        case (now_name)
+                            `LW : reg_out <= ld_data;
+                            `LH : reg_out <= {{17{ld_data[15]}}, ld_data[14:0]};
+                            `LB : reg_out <= {{25{ld_data[7]}}, ld_data[6:0]};
+                            `LHU: reg_out <= {16'b0, ld_data[15:0]};
+                            `LBU: reg_out <= {24'b0, ld_data[7:0]};
+                        endcase
                         statu <= `IDLE;
+                        wb_rdy <= 1;
                     end
                 end
                 `ST: begin
                     if (mem_rdy) begin
                         statu <= `IDLE;
+                        wb_rdy <= 1;
                     end
                 end
             endcase

@@ -1,3 +1,5 @@
+`include "const.v"
+
 `ifndef MEMCTRL_V
 `define MEMCTRL_V
 
@@ -20,17 +22,13 @@ module Memctrl (
     output reg [31:0] inst_out,
 
     // WB
+    input wire [2:0]  mem_len,
     input wire [1:0]  mem_wr,
     input wire [31:0] mem_addr,
     input wire [31:0] mem_data,
     output reg mem_rdy,
     output reg [31:0] mem_out
 );
-
-    localparam `IDLE = 2'b00;
-    localparam `IF = 2'b01;
-    localparam `LD = 2'b10;
-    localparam `ST = 2'b11;
 
     reg [2:0] index;
     reg [1:0] statu;
@@ -66,7 +64,7 @@ module Memctrl (
                         2'b10: inst_out[23:16] <= data_in;
                         2'b11: inst_out[31:24] <= data_in;
                     endcase
-                    if (index == 2'b11) begin
+                    if (index == mem_len - 1) begin
                         inst_rdy <= 1;
                         index <= 0;
                         statu <= `IDLE;
@@ -82,7 +80,7 @@ module Memctrl (
                         2'b10: mem_out[23:16] <= data_in;
                         2'b11: mem_out[31:24] <= data_in;
                     endcase
-                    if (index == 2'b11) begin
+                    if (index == mem_len - 1) begin
                         mem_rdy <= 1;
                         index <= 0;
                         statu <= `IDLE;
@@ -100,7 +98,7 @@ module Memctrl (
                         2'b10: data_out[23:16] <= mem_data;
                         2'b11: data_out[31:24] <= mem_data;
                         endcase
-                        if (index == 2'b11) begin
+                        if (index == mem_len - 1) begin
                             mem_rdy <= 1;
                             index <= 0;
                             statu <= `IDLE;

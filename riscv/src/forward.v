@@ -16,11 +16,12 @@ module Forward (
     input wire [4:0]  rd,
     input wire [31:0] pc,
     input wire [31:0] imm,
-    output reg ins_rdy,
-    output wire bubble,
+    output wire ins_rdy,
+
+    // Memctrl
+    input wire mem_rdy,
 
     // WB
-    input wire wb_rdy,
     output reg rd_rdy,
     output reg is_vec_out,
     output reg [1:0]  type_out,
@@ -28,14 +29,15 @@ module Forward (
     output reg [4:0]  rd_out,
     output reg [31:0] pc_out,
     output reg [31:0] imm_out
-
 );
 
-    assign bubble = (issue_rdy && (type == `MEM));
+    wire bubble = issue_rdy && (name >= `LB && name <= `SW);
+    reg bubbling;
+    assign ins_rdy = !bubble && !bubbling;
 
     always @(posedge clk) begin
         if (rst) begin
-            ins_rdy <= 0;
+            bubbling = 0;
         end else if (!rdy) begin
         end else begin
             rd_rdy <= issue_rdy;
@@ -45,11 +47,8 @@ module Forward (
             rd_out <= rd;
             pc_out <= pc;
             imm_out <= imm;
-            if (!ins_rdy) begin
-                ins_rdy <= wb_rdy;
-            end else begin
-                ins_rdy <= !bubble;
-            end
+            if (bubbling) bubbling <= (!mem_rdy);
+            else if (bubble) bubbling <= 1;
         end
     end
 

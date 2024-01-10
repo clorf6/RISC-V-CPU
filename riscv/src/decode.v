@@ -20,9 +20,6 @@ module Decode (
     wire [31:25] funct7 = inst[31:25];
     
     always @(*) begin
-        if (inst == 32'h0ff00513) begin
-            type = `DONE;
-        end
         is_imm = 0;
         is_pc = 0;
         is_vec = 0;
@@ -59,6 +56,7 @@ module Decode (
                     `SLTIU: imm = inst[31:20];
                     default: imm = {{21{inst[31]}}, inst[30:20]};
                 endcase
+                rs2 = 0;
                 type = `REG;
                 is_imm = 1;
             end
@@ -73,6 +71,7 @@ module Decode (
                 type = `REG;
                 imm  = {{21{inst[31]}}, inst[30:20]};
                 is_imm = 1;
+                rs2 = 0;
             end
             7'b0100011: begin
                 case (funct3)
@@ -101,6 +100,8 @@ module Decode (
                 type = `REG;
                 imm  = {inst[31:12], 12'b0};
                 is_imm = 1;
+                rs1 = 0;
+                rs2 = 0;
             end
             7'b0010111: begin
                 name = `AUIPC;
@@ -108,6 +109,8 @@ module Decode (
                 imm  = {inst[31:12], 12'b0};
                 is_imm = 1;
                 is_pc = 1;
+                rs1 = 0;
+                rs2 = 0;
             end
             7'b1101111: begin
                 name = `JAL;
@@ -115,12 +118,15 @@ module Decode (
                 imm  = 4;
                 is_imm = 1;
                 is_pc = 1;
+                rs1 = 0;
+                rs2 = 0;
             end
             7'b1100111: begin
                 name = `JALR;
                 type = `REG;
                 imm  = {{21{inst[31]}}, inst[30:20]};
                 is_imm = 1;
+                rs2 = 0;
             end
 
         endcase

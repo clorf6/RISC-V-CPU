@@ -64,7 +64,6 @@ module cpu(
   wire reg_to_iq_op1_rdy;
   wire reg_to_iq_op2_rdy;
   wire fw_to_iq_ins_rdy;
-  wire fw_to_iq_bubble;
   
 // Forward input  
   wire iq_issue_rdy; 
@@ -74,7 +73,7 @@ module cpu(
   wire [4:0] iq_rd;
   wire [31:0] iq_pc;
   wire [31:0] iq_imm;
-  wire wb_to_fw_rdy;
+  wire mem_rdy;
 
 // SALU input
   wire iq_is_imm;
@@ -83,9 +82,11 @@ module cpu(
   wire [31:0] reg_op2;
 
 // SReg input
+  wire [4:0] iq_pre_rs1;
+  wire [4:0] iq_pre_rs2; 
   wire [4:0] iq_rs1;
   wire [4:0] iq_rs2; 
-  wire wb_to_reg_commit_rd;
+  wire [4:0] wb_to_reg_commit_rd;
   wire [31:0] wb_to_reg_commit_data;
 
 // Writeback input
@@ -97,7 +98,8 @@ module cpu(
   wire [31:0] fw_to_wb_pc;
   wire [31:0] fw_to_wb_imm; 
   wire [31:0] salu_to_wb_val;
-  wire mem_to_wb_mem_rdy;
+  wire if_to_wb_pc_rdy;
+  wire mem_to_wb_mem_st;
   wire [31:0] mem_to_wb_mem_out; 
 
   Memctrl memctrl(
@@ -117,7 +119,8 @@ module cpu(
     .mem_wr(wb_to_mem_wr),
     .mem_addr(wb_to_mem_addr),
     .mem_data(wb_to_mem_data),
-    .mem_rdy(mem_to_wb_mem_rdy),
+    .mem_rdy(mem_rdy),
+    .mem_st(mem_to_wb_mem_st),
     .mem_out(mem_to_wb_mem_out)
   );
 
@@ -141,12 +144,13 @@ module cpu(
     .hit(ic_to_if_hit),
     .inst_in(ic_to_if_inst),
     .pc(if_to_ic_pc),
-    .iqueue_full(iq_to_if_iq_full),
+    .full(iq_to_if_iq_full),
     .inst_rdy(if_to_iq_inst_rdy),
     .inst_out(if_to_iq_inst),
     .pc_out(if_to_iq_pc),
     .br_rdy(wb_to_if_br_rdy),
-    .nex_pc(wb_to_if_nex_pc)
+    .nex_pc(wb_to_if_nex_pc),
+    .pc_rdy(if_to_wb_pc_rdy)
   );
   
   IQueue iqueue(
@@ -156,16 +160,17 @@ module cpu(
     .inst_rdy(if_to_iq_inst_rdy),
     .inst(if_to_iq_inst),
     .pc_in(if_to_iq_pc),
-    .iqueue_full(iq_to_if_iq_full),
+    .full(iq_to_if_iq_full),
     .op1_rdy(reg_to_iq_op1_rdy),
     .op2_rdy(reg_to_iq_op2_rdy),
+    .pre_rs1(iq_pre_rs1),
+    .pre_rs2(iq_pre_rs2),
     .rs1(iq_rs1),
     .rs2(iq_rs2),
     .issue_rdy(iq_issue_rdy),
     .type(iq_type),
     .rd(iq_rd),
     .ins_rdy(fw_to_iq_ins_rdy),
-    .bubble(fw_to_iq_bubble),
     .is_vec(iq_is_vec),
     .name(iq_name),
     .pc_out(iq_pc),
@@ -186,8 +191,7 @@ module cpu(
     .pc(iq_pc),
     .imm(iq_imm),
     .ins_rdy(fw_to_iq_ins_rdy),
-    .bubble(fw_to_iq_bubble),
-    .wb_rdy(wb_to_fw_rdy),
+    .mem_rdy(mem_rdy),
     .rd_rdy(fw_to_wb_rd_rdy),
     .is_vec_out(fw_to_wb_is_vec),
     .type_out(fw_to_wb_type),
@@ -220,6 +224,8 @@ module cpu(
     .issue_rdy(iq_issue_rdy),
     .type(iq_type),
     .rd(iq_rd),
+    .pre_rs1(iq_pre_rs1),
+    .pre_rs2(iq_pre_rs2),
     .rs1(iq_rs1),
     .rs2(iq_rs2),
     .op1_rdy(reg_to_iq_op1_rdy),
@@ -241,14 +247,15 @@ module cpu(
     .rd(fw_to_wb_rd),
     .pc(fw_to_wb_pc),
     .imm(fw_to_wb_imm),
-    .wb_rdy(wb_to_fw_rdy),
     .val(salu_to_wb_val),
+    .pc_rdy(if_to_wb_pc_rdy),
     .br_rdy(wb_to_if_br_rdy),
     .pc_out(wb_to_if_nex_pc),
     .st_data(reg_op2),
     .reg_rd(wb_to_reg_commit_rd),
     .reg_out(wb_to_reg_commit_data),
-    .mem_rdy(mem_to_wb_mem_rdy),
+    .mem_rdy(mem_rdy),
+    .mem_st(mem_to_wb_mem_st),
     .ld_data(mem_to_wb_mem_out),
     .mem_len(wb_to_mem_len),
     .mem_wr(wb_to_mem_wr),

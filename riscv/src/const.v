@@ -42,7 +42,6 @@
 `define JAL   6'd35
 `define JALR  6'd36
 
-`define DONE  2'b00
 `define REG   2'b01
 `define MEM   2'b10
 `define BR    2'b11
@@ -53,9 +52,10 @@
 `define INDEX_SIZE 8
 `define TAG_SIZE 30 - `INDEX_SIZE
 `define IDLE 1'b0
-`define MEM  1'b1
+`define IMEM  1'b1
 
 `define IDLE 2'b00
 `define IF   2'b01
+`define WBR  2'b01
 `define LD   2'b10
 `define ST   2'b11

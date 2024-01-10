@@ -10,16 +10,18 @@ module IQueue (
     input wire rdy,
 
     // IFetch
-    input wire inst_rdy,
-    input wire [31:0] inst,
-    input wire [31:0] pc_in,
-    output reg iqueue_full,
+    input  wire inst_rdy,
+    input  wire [31:0] inst,
+    input  wire [31:0] pc_in,
+    output wire full,
 
     // Reg
     input  wire op1_rdy,
     input  wire op2_rdy,
-    output reg [4:0] rs1, 
-    output reg [4:0] rs2,
+    output wire [4:0] pre_rs1,
+    output wire [4:0] pre_rs2,
+    output reg  [4:0] rs1, 
+    output reg  [4:0] rs2,
 
     // Reg and Forward, ALU
     output reg issue_rdy,
@@ -30,7 +32,6 @@ module IQueue (
     
     // Forward
     input wire ins_rdy,
-    input wire bubble,
     
     // Forward and ALU
     output reg is_vec,
@@ -48,7 +49,7 @@ module IQueue (
     reg [31:0] pc_que [`QUE_SIZE - 1 : 0];
     reg [31:0] ins_que [`QUE_SIZE - 1 : 0];
     wire empty = (head == tail);
-    wire full  = (head == tail + 1) || (head == tail + 2);
+    assign full  = (head == tail + 1) || (head == tail + 2);
 
     wire _is_vec;
     wire _is_imm;
@@ -56,8 +57,6 @@ module IQueue (
     wire [1:0] _type;
     wire [5:0] _name;
     wire [4:0] _rd;
-    wire [4:0] _rs1;
-    wire [4:0] _rs2;
     wire [31:0] _imm;
 
     Decode decode (
@@ -68,10 +67,14 @@ module IQueue (
         .type (_type),
         .name (_name),
         .rd (_rd),
-        .rs1 (_rs1),
-        .rs2 (_rs2),
+        .rs1 (pre_rs1),
+        .rs2 (pre_rs2),
         .imm (_imm)
     );
+    
+    reg [31:0] inst_out;
+
+    wire ok = op1_rdy && op2_rdy;
 
     always @(posedge clk) begin
         if (rst) begin
@@ -85,22 +88,21 @@ module IQueue (
                 tail <= tail + 1;
                 pc_que[tail] <= pc_in;
                 ins_que[tail] <= inst; 
-                if (full) begin
-                    iqueue_full <= 1;
-                end
             end
-            if (ins_rdy && !empty && !bubble) begin
+            issue_rdy <= 0;
+            if (ins_rdy && !empty) begin
                 is_vec <= _is_vec;
                 is_imm <= _is_imm;
                 is_pc <= _is_pc;
                 type <= _type;
                 name <= _name;
                 rd <= _rd;
-                rs1 <= _rs1;
-                rs2 <= _rs2;
+                rs1 <= pre_rs1;
+                rs2 <= pre_rs2;
                 imm <= _imm;
-                if ((_is_pc || op1_rdy) && (_is_imm || op2_rdy)) begin
+                if (ok) begin
                     pc_out <= pc_que[head];
+                    inst_out <= ins_que[head];
                     head <= head + 1;
                     issue_rdy <= 1;
                 end

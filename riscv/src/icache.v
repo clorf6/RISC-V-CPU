@@ -45,12 +45,12 @@ module ICache (
             case (statu) 
                 `IDLE : begin
                     if (!hit) begin
-                        statu <= `MEM;
+                        statu <= `IMEM;
                         inst_miss <= 1;
                         pc_out <= pc;
                     end
                 end
-                `MEM : begin
+                `IMEM : begin
                     if (inst_rdy) begin
                         statu <= `IDLE;
                         inst_miss <= 0;

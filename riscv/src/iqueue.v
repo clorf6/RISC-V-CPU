@@ -44,12 +44,14 @@ module IQueue (
     output reg is_pc // use pc as operand (not rs1)
 ); 
     
-    integer head;
-    integer tail; 
+    reg [ 3:0] head;
+    reg [ 3:0] tail; 
     reg [31:0] pc_que [`QUE_SIZE - 1 : 0];
     reg [31:0] ins_que [`QUE_SIZE - 1 : 0];
     wire empty = (head == tail);
-    assign full = (head == ((tail + 1) & (`QUE_SIZE - 1)) || head == ((tail + 2) & (`QUE_SIZE - 1)));
+    wire [3:0] tail1 = tail + 1;
+    wire [3:0] tail2 = tail + 2;
+    assign full = (head == tail1 || head == tail2);
 
     wire _is_vec;
     wire _is_imm;
@@ -85,7 +87,7 @@ module IQueue (
 
         end else begin
             if (inst_rdy) begin
-                tail <= (tail + 1) & (`QUE_SIZE - 1);
+                tail <= tail + 1;
                 pc_que[tail] <= pc_in;
                 ins_que[tail] <= inst; 
             end
@@ -103,7 +105,7 @@ module IQueue (
                 if (ok) begin
                     pc_out <= pc_que[head];
                     inst_out <= ins_que[head];
-                    head <= (head + 1) & (`QUE_SIZE - 1);
+                    head <= head + 1;
                     issue_rdy <= 1;
                 end
             end else begin

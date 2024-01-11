@@ -98,21 +98,19 @@ module Memctrl (
                 end
                 `ST: begin
                     mem_st <= 0;
-                    if (!io_buffer_full) begin
-                        data_wr <= 1;
-                        data_addr <= mem_addr + index;
-                        case (index)
-                            2'b00:  data_out <= mem_data[7:0];
-                            2'b01:  data_out <= mem_data[15:8];  
-                            2'b10:  data_out <= mem_data[23:16];
-                            3'b11:  data_out <= mem_data[31:24];
-                        endcase
-                        if (index == mem_len - 1) begin
-                            mem_rdy <= 1;
-                            statu <= `IDLE;
-                        end else begin
-                            index <= index + 1;
-                        end
+                    data_wr <= 1;
+                    data_addr <= mem_addr + index;
+                    case (index)
+                        2'b00:  data_out <= mem_data[7:0];
+                        2'b01:  data_out <= mem_data[15:8];  
+                        2'b10:  data_out <= mem_data[23:16];
+                        3'b11:  data_out <= mem_data[31:24];
+                    endcase
+                    if (index == mem_len - 1) begin
+                        mem_rdy <= 1;
+                        statu <= `IDLE;
+                    end else begin
+                        index <= index + 1;
                     end
                 end
             endcase
